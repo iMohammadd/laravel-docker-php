@@ -2,35 +2,32 @@ FROM php:7.2-fpm
 
 # Install PHP extensions
 RUN apt-get update && apt-get install -y \
+    apt-utils \
+    gnupg \
+    libmcrypt-dev \
+    libreadline-dev \
     libicu-dev \
     libpq-dev \
-    libmcrypt-dev \
+    zlib1g-dev \
+    libzip-dev \
     && rm -r /var/lib/apt/lists/* \
+    && pecl install mcrypt-1.0.2 \
+    && docker-php-ext-enable mcrypt \
     && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
     && docker-php-ext-install \
     intl \
     mbstring \
-    mcrypt \
     pcntl \
     pdo_mysql \
     pdo_pgsql \
     pgsql \
     zip \
-    opcache
+    opcache 
 
-# Install Xdebug
-RUN curl -fsSL 'https://xdebug.org/files/xdebug-2.4.0.tgz' -o xdebug.tar.gz \
-    && mkdir -p xdebug \
-    && tar -xf xdebug.tar.gz -C xdebug --strip-components=1 \
-    && rm xdebug.tar.gz \
-    && ( \
-    cd xdebug \
-    && phpize \
-    && ./configure --enable-xdebug \
-    && make -j$(nproc) \
-    && make install \
-    ) \
-    && rm -r xdebug \
-&& docker-php-ext-enable xdebug
+
+RUN yes | pecl install xdebug \
+    && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
+    && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
+    && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
 
 WORKDIR /var/www/
