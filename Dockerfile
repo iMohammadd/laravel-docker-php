@@ -1,12 +1,13 @@
-FROM php:7.2-fpm-alpine
+FROM php:7.2-fpm
 
-RUN apk update && apk add \
-    #libicu-dev \
-    #libpq-dev \
+# Install PHP extensions
+RUN apt-get update && apt-get install -y \
+    libicu-dev \
+    libpq-dev \
     libmcrypt-dev \
+    && rm -r /var/lib/apt/lists/* \
     && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
-    docker-php-ext-install \
-    pdo \
+    && docker-php-ext-install \
     intl \
     mbstring \
     mcrypt \
